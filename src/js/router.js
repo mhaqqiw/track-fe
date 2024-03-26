@@ -3,7 +3,7 @@ import HomeView from "../components/ViewTracker.vue";
 // import { HOST } from "./../js/url";
 
 const router = createRouter({
-    history: createWebHistory("/"),
+    history: createWebHistory("/passport/"),
     routes: [
         {
             path: "/",
