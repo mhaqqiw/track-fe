@@ -8,6 +8,7 @@ export const ADDRESS = API_URL + '/address';
 export const POSTAL = API_URL + '/postal';
 export const KANIM = API_URL + '/kanim';
 export const SEND = API_URL + '/send';
+export const ORDER = API_URL + '/order';
 
 export const customFetch = (url, options, meta) => {
     return fetch(url, options)

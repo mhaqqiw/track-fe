@@ -15,7 +15,7 @@
                     <div class="qvalue">{{ address }}</div>
                 </a-col>
                 <a-col>
-                    <a-button align="right" type="primary">Lanjut</a-button>
+                    <a-button align="right" type="primary" @click="next">Lanjut</a-button>
                 </a-col>
             </a-flex>
         </div>
@@ -23,8 +23,9 @@
             <a-row type="flex" align="middle" class="qrow">
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
-                    <a-select v-model:value="id" mode="tags" style="width: 100%" placeholder="Nomor Permohonan"
-                        @change="handleChange" @keydown="preventNonNumericInput">
+                    <a-select :status="error.id.status ? 'error' : 'success'" v-model:value="id" mode="tags"
+                        style="width: 100%" placeholder="Nomor Permohonan" @change="handleChange"
+                        @keydown="preventNonNumericInput">
                         <template #notFoundContent>
                             <a-empty
                                 description="Anda diharuskan memasukkan nomor permohonan disini, anda dapat mengisi dengan beberapa nomor permohonan dalam 1 kanim" />
@@ -33,6 +34,8 @@
                             {{ item }}
                         </a-select-option>
                     </a-select>
+                    <label v-if="error.id.status" style="color: red;font-weight: 700;">{{ error.id.message
+                        }}</label>
                 </a-col>
             </a-row>
             <a-row type="flex" align="middle" class="qrow">
@@ -42,13 +45,14 @@
                         <a-flex>
                             <a-select v-model:value="country">
                                 <a-select-option v-for="(item, idx) in phoneCodeList" :key="idx" :value="item.dial_code"
-                                    @click="selectCountryCode(item)">
+                                    style="min-width: 200px;" @click="selectCountryCode(item)">
                                     {{ item.flag }} {{ item.dial_code }}
                                 </a-select-option>
                             </a-select>
-                            <a-input :class="{ 'centered-placeholder': !phoneNumber }" v-model:value="phoneNumber"
+                            <a-input :status="error.phone.status ? 'error' : 'success'"
+                                :class="{ 'centered-placeholder': !phoneNumber }" v-model:value="phoneNumber"
                                 placeholder="Nomor Telepon / HP" @keydown="preventNonNumericInput"
-                                style="text-align: left;">
+                                style="text-align: left;" @input="checkPhone">
                                 <template #suffix>
                                     <a-tooltip title="masukkan nomor telepon / HP disini">
                                         <info-circle-outlined style="color: rgba(0, 0, 0, 0.45)" />
@@ -56,6 +60,8 @@
                                 </template>
                             </a-input>
                         </a-flex>
+                        <label v-if="error.phone.status" style="color: red;font-weight: 700;">{{ error.phone.message
+                            }}</label>
                     </a-input-group>
                 </a-col>
             </a-row>
@@ -63,8 +69,8 @@
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
                     <a-input-group>
-                        <a-input :status="error_email ? 'error' : 'success'" v-model:value="email" placeholder="Email"
-                            style="font-size: 15px;" @input="checkEmail">
+                        <a-input :status="error.email.status ? 'error' : 'success'" v-model:value="email"
+                            placeholder="Email" style="font-size: 15px;" @input="checkEmail">
                             <template #prefix>
                                 <MailOutlined />
                             </template>
@@ -74,11 +80,12 @@
                                 </a-tooltip>
                             </template>
                         </a-input>
-                        <label v-if="error_email" style="color: red;font-weight: 700;">format email tidak valid</label>
+                        <label v-if="error.email.status" style="color: red;font-weight: 700;">{{ error.email.message
+                            }}</label>
                     </a-input-group>
                 </a-col>
             </a-row>
-            <a-row type="flex" align="middle" class="qrow">
+            <!-- <a-row type="flex" align="middle" class="qrow">
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
                     <a-select v-model:value="postal_code" placeholder="Kode Pos" show-search style="width: 100%"
@@ -134,7 +141,7 @@
                         </a-collapse-panel>
                     </a-collapse>
                 </a-col>
-            </a-row>
+            </a-row> -->
             <a-row type="flex" align="middle" class="qrow">
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
@@ -190,10 +197,10 @@
                             kuasa)?</label>
                     </a-row>
                     <a-row>
-                        <a-radio-group v-model:value="cost" align="left">
-                            <a-radio :value="0">Ya, (Anda dapat memberikan materai ke petugas)</a-radio>
-                            <a-radio :value="10000">Tidak, (Anda dapat membeli materai ke petugas seharga Rp.
-                                10,000)</a-radio>
+                        <a-radio-group v-model:value="use_materai" align="left">
+                            <a-radio :value=false>Ya, (Anda dapat memberikan materai ke petugas)</a-radio>
+                            <a-radio :value="true">Tidak, (Anda dapat membeli materai ke petugas seharga Rp.
+                                {{cost}}})</a-radio>
                         </a-radio-group>
                     </a-row>
                 </a-col>
@@ -222,11 +229,12 @@
     <ModalKanim :showModal="modal_select_kanim" :kanim="list_kanim" @closeModal="closeModal" />
 </template>
 <script>
+import { message } from "ant-design-vue";
 import { debounce } from 'lodash-es';
 import { FileDoneOutlined, InfoCircleOutlined, MailOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { GoogleMap, Marker } from 'vue3-google-map'
 import { phoneCode } from '../../js/phone_code.js';
-import { customFetch, KANIM, ADDRESS, POSTAL, SEND } from '../../js/url.js';
+import { customFetch, KANIM, ADDRESS, POSTAL, SEND, ORDER } from '../../js/url.js';
 import ModalKanim from '../modal/ModalKanim.vue';
 import { useReCaptcha } from "vue-recaptcha-v3";
 
@@ -249,12 +257,13 @@ export default {
         return {
             email: "",
             cost: 0,
+            use_materai: true,
             send_type: 1,
             send_cost: [],
             kanim: {},
+            place_id: "",
             list_kanim: [],
             modal_select_kanim: false,
-            error_email: true,
             phoneNumber: "",
             renderComponent: true,
             id: [],
@@ -270,6 +279,20 @@ export default {
             address_data: [],
             selected_address: {},
             fetching: false,
+            error: {
+                email: {
+                    status: true,
+                    message: 'Email harus diisi'
+                },
+                phone: {
+                    status: true,
+                    message: 'Nomor Telepon harus diisi'
+                },
+                id: {
+                    status: true,
+                    message: 'Nomor Permohonan harus diisi'
+                }
+            },
             maps_data: {
                 locationInput: null,
                 center: { lat: -6.2215099, lng: 106.8293873 },
@@ -283,6 +306,55 @@ export default {
         this.getKanimList()
     },
     methods: {
+        next() {
+            if (this.email == "") {
+                message.error("Email harus diisi");
+                return
+            }
+            if (this.address == "") {
+                message.error("Alamat harus diisi");
+                return
+            }
+            if (this.kanim.code == "") {
+                message.error("Kanim harus diisi");
+                return
+            }
+            if (this.phoneNumber == "") {
+                message.error("Nomor Telepon harus diisi");
+                return
+            }
+            if (this.id.length == 0) {
+                message.error("Nomor Permohonan harus diisi");
+                return
+            }
+            this.recaptcha().then((token) => {
+                let contryCode = this.country.split("+")[1];
+                const requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                    body: JSON.stringify({
+                        request_id: this.id,
+                        email: this.email,
+                        phone: "+" + contryCode + "-" + this.phoneNumber,
+                        to_lat: this.maps_data.center.lat,
+                        to_lng: this.maps_data.center.lng,
+                        address: this.address,
+                        detail: this.detail_address,
+                        place_id: this.place_id,
+                        use_materai: this.cost > 0 ? true : false
+                    }),
+                };
+                customFetch(ORDER + "/" + this.kanim.code, requestOptions, this.$route.meta)
+                    .then((data) => {
+                        if (data == undefined) {
+                            throw new Error("No data");
+                        }
+                        localStorage.setItem("order_id", data.data.order_id)
+                    })
+                    .catch(() => {
+                    });
+            });
+        },
         getSendPrice() {
             this.recaptcha().then((token) => {
                 const requestOptions = {
@@ -313,7 +385,7 @@ export default {
             let queryParams = new URLSearchParams(window.location.search);
             queryParams.set("kanim", this.kanim.code)
             window.history.pushState({}, "", "?" + queryParams.toString());
-            this.getSendPrice(this.kanim.lat, this.kanim.lng, this.maps_data.center.lat, this.maps_data.center.lng)
+            // this.getSendPrice(this.kanim.lat, this.kanim.lng, this.maps_data.center.lat, this.maps_data.center.lng)
         },
         getKanimList() {
             customFetch(KANIM, null, this.$route.meta)
@@ -349,11 +421,26 @@ export default {
                 });
         },
         checkEmail() {
+            if (this.email == "") {
+                this.error.email.status = true
+                this.error.email.message = "Email harus diisi"
+                return
+            }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            console.log(emailRegex.test(this.email))
             if (emailRegex.test(this.email)) {
-                this.error_email = false
+                this.error.email.status = false
             } else {
-                this.error_email = true
+                this.error.email.status = true
+                this.error.email.message = "Format Email tidal sesuai (contoh: coba@gmail.com)"
+            }
+        },
+        checkPhone() {
+            if (this.phone == "") {
+                this.error.phone.status = true
+                this.error.phone.message = "Nomor Telepon harus diisi"
+            } else {
+                this.error.phone.status = false
             }
         },
         sortByDialCodeAscending(countries) {
@@ -377,8 +464,14 @@ export default {
             }
         },
 
-        handleChange(value) {
-            console.log(value)
+        handleChange() {
+            if (this.id.length > 0) {
+                this.error.id.status = false
+            } else {
+                this.error.id.status = true
+                this.error.id.message = "Nomor Permohonan harus diisi"
+            }
+            this.cost = 10000 * this.id.length
         },
         selectId(item) {
             console.log(item)
@@ -394,12 +487,13 @@ export default {
             this.renderComponent = true;
         },
         selectAddress(item) {
+            this.place_id = item.place_id
             this.recaptcha().then((token) => {
                 const requestOptions = {
                     method: "GET",
                     headers: { "Content-Type": "application/json", "c-tok": token },
                 }
-                customFetch(POSTAL + '?q=' + item.description, requestOptions, this.$route.meta)
+                customFetch(ADDRESS + '?q=' + item.description, requestOptions, this.$route.meta)
                     .then((data) => {
                         if (data == undefined) {
                             throw new Error("No data");
@@ -415,7 +509,7 @@ export default {
                         }
                         this.expand_maps = ['1']
                         this.fetching = false;
-                        this.getSendPrice(this.kanim.lat, this.kanim.lng, this.maps_data.center.lat, this.maps_data.center.lng)
+                        // this.getSendPrice(this.kanim.lat, this.kanim.lng, this.maps_data.center.lat, this.maps_data.center.lng)
                     })
                     .catch(() => {
                         this.fetching = false;
@@ -431,17 +525,21 @@ export default {
         fetchData: debounce(function (value) {
             if (value != "") {
                 this.fetching = true;
-                customFetch(POSTAL + '?q=' + value, null, this.$route.meta)
-                    .then((data) => {
-                        if (data == undefined) {
-                            throw new Error("No data");
-                        }
-                        this.postal_data = data.data;
-                        this.fetching = false;
-                    })
-                    .catch(() => {
-                        this.fetching = false;
-                    });
+                this.recaptcha().then((token) => {
+                    const requestOptions = {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json", "c-tok": token },
+                    }
+                    customFetch(POSTAL + '?q=' + value, requestOptions, this.$route.meta)
+                        .then((data) => {
+                            this.postal_data = data.data;
+                            this.fetching = false;
+                        })
+                        .catch(() => {
+                            this.fetching = false;
+                        });
+                });
+
             } else {
                 this.postal_data = [];
             }
