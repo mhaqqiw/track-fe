@@ -39,7 +39,7 @@
                 <a-col :span="23">
                     <a-input-group>
                         <a-input :status="error.name.status ? 'error' : 'success'" v-model:value="name"
-                            placeholder="Email" style="font-size: 15px;" @input=checkName>
+                            placeholder="Nama Pemohon" style="font-size: 15px;" @input=checkName>
                             <template #prefix>
                                 <UserOutlined />
                             </template>

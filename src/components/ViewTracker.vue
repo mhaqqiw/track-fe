@@ -4,7 +4,7 @@
             <template #tab>
                 <span>
                     <AppstoreAddOutlined />
-                    Apply
+                    Buat Permohonan
                 </span>
             </template>
             <StepRegister :current="step" :isMobile="is_mobile" style="margin-bottom: 25px;"/>
@@ -23,7 +23,7 @@
             <template #tab>
                 <span>
                     <FileSearchOutlined />
-                    Track
+                    Lacak
                 </span>
             </template>
             Tab 2
