@@ -140,7 +140,7 @@
                     <a-collapse v-model:activeKey="expand_maps" class="qtitle">
                         <a-collapse-panel key="1"
                             :header="maps_data.markerPosition.lat ? 'Latitude: ' + maps_data.markerPosition.lat + '; Longitude: ' + maps_data.markerPosition.lng : 'NA'">
-                            <GoogleMap v-if="renderComponent" api-key="AIzaSyDwKe1ckc3EVUvT_RRxscuLVa5Hzts763w"
+                            <GoogleMap v-if="renderComponent" api-key="AIzaSyC8Xa5ec0TBZ_1Fc4hlax9JrsRQLVg1Pmk"
                                 :center="maps_data.center" :zoom="maps_data.zoom" style="height: 400px; width: 100%">
                                 <Marker :options="{ position: maps_data.markerPosition }" :draggable="true" />
                             </GoogleMap>
@@ -486,7 +486,7 @@ export default {
                     method: "GET",
                     headers: { "Content-Type": "application/json", "c-tok": token },
                 }
-                customFetch(ADDRESS + '?q=' + item.description, requestOptions, this.$route.meta)
+                customFetch(ADDRESS + '/detail?q=' + item.description, requestOptions, this.$route.meta)
                     .then((data) => {
                         if (data == undefined) {
                             throw new Error("No data");
