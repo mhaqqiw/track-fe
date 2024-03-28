@@ -3,11 +3,7 @@
         <div class="qcard" style="margin-bottom: 15px;position: sticky; top: 25px;z-index: 1000;">
             <a-flex gap="middle" align="center" justify="space-between">
                 <a-col>
-                    <div class="qtitle">Dari
-                        <a-button type="primary" size="small" @click="modal_select_kanim = true">
-                            <EditOutlined />
-                        </a-button>
-                    </div>
+                    <div class="qtitle">Dari</div>
                     <div class="qvalue">{{ kanim.name }}</div>
                 </a-col>
                 <a-col :span="12">
@@ -30,12 +26,32 @@
                             <a-empty
                                 description="Anda diharuskan memasukkan nomor permohonan disini, anda dapat mengisi dengan beberapa nomor permohonan dalam 1 kanim" />
                         </template>
-                        <a-select-option v-for="item, idx in id" :key="idx" :value="item" @click="selectId(item)">
+                        <a-select-option v-for="item, idx in id" :key="idx" :value="item">
                             {{ item }}
                         </a-select-option>
                     </a-select>
                     <label v-if="error.id.status" style="color: red;font-weight: 700;">{{ error.id.message
                         }}</label>
+                </a-col>
+            </a-row>
+            <a-row type="flex" align="middle" class="qrow">
+                <a-col :span="1" class="required">*</a-col>
+                <a-col :span="23">
+                    <a-input-group>
+                        <a-input :status="error.name.status ? 'error' : 'success'" v-model:value="name"
+                            placeholder="Email" style="font-size: 15px;" @input=checkName>
+                            <template #prefix>
+                                <UserOutlined />
+                            </template>
+                            <template #suffix>
+                                <a-tooltip title="masukkan nama anda disini">
+                                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45)" />
+                                </a-tooltip>
+                            </template>
+                        </a-input>
+                        <label v-if="error.name.status" style="color: red;font-weight: 700;">{{ error.name.message
+                            }}</label>
+                    </a-input-group>
                 </a-col>
             </a-row>
             <a-row type="flex" align="middle" class="qrow">
@@ -85,63 +101,6 @@
                     </a-input-group>
                 </a-col>
             </a-row>
-            <!-- <a-row type="flex" align="middle" class="qrow">
-                <a-col :span="1" class="required">*</a-col>
-                <a-col :span="23">
-                    <a-select v-model:value="postal_code" placeholder="Kode Pos" show-search style="width: 100%"
-                        align="left" :filter-option="false" @search="fetchData">
-                        <template #notFoundContent>
-                            <a-spin v-if="fetching" size="small" />
-                            <a-empty v-else
-                                description="isi dengan valid kode pos, atau kamu bisa mencari denga nama provinsi, kota/kabupaten, kecamatan, desa/kelurahan" />
-                        </template>
-                        <a-select-option v-for="item, idx in postal_data" :key="idx"
-                            :value="item.code + ' - ' + item.urban" @click="selectPostal(item)">
-                            ({{ item.code }}) - {{ item.province }}, {{ item.city }}, {{ item.subdistrict }} -
-                            {{ item.urban }}
-                        </a-select-option>
-                    </a-select>
-                </a-col>
-            </a-row>
-            <a-row type="flex" align="middle" class="qrow">
-                <a-col :span="1" class="required"></a-col>
-                <a-col :span="23">
-                    <a-collapse v-model:activeKey="expand_detail" class="qtitle">
-                        <a-collapse-panel key="1"
-                            :header="selected_postal.code ? selected_postal.code + ' - ' + selected_postal.urban : 'NA'">
-                            <div class="qcard">
-                                <a-flex gap="middle" vertical>
-                                    <a-row>
-                                        <a-col :span="7" class="qtitle">Kode Pos</a-col>
-                                        <a-col :span="1">:</a-col>
-                                        <a-col :span="16" class="qvalue">{{ selected_postal.code }}</a-col>
-                                    </a-row>
-                                    <a-row>
-                                        <a-col :span="7" class="qtitle">Provinsi</a-col>
-                                        <a-col :span="1">:</a-col>
-                                        <a-col :span="16" class="qvalue">{{ selected_postal.province }}</a-col>
-                                    </a-row>
-                                    <a-row>
-                                        <a-col :span="7" class="qtitle">Kota / Kabupaten</a-col>
-                                        <a-col :span="1">:</a-col>
-                                        <a-col :span="16" class="qvalue">{{ selected_postal.city }}</a-col>
-                                    </a-row>
-                                    <a-row>
-                                        <a-col :span="7" class="qtitle">Kecamatan</a-col>
-                                        <a-col :span="1">:</a-col>
-                                        <a-col :span="16" class="qvalue">{{ selected_postal.subdistrict }}</a-col>
-                                    </a-row>
-                                    <a-row>
-                                        <a-col :span="7" class="qtitle">Desa / Kelurahan</a-col>
-                                        <a-col :span="1">:</a-col>
-                                        <a-col :span="16" class="qvalue">{{ selected_postal.urban }}</a-col>
-                                    </a-row>
-                                </a-flex>
-                            </div>
-                        </a-collapse-panel>
-                    </a-collapse>
-                </a-col>
-            </a-row> -->
             <a-row type="flex" align="middle" class="qrow">
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
@@ -200,42 +159,21 @@
                         <a-radio-group v-model:value="use_materai" align="left">
                             <a-radio :value=false>Ya, (Anda dapat memberikan materai ke petugas)</a-radio>
                             <a-radio :value="true">Tidak, (Anda dapat membeli materai ke petugas seharga Rp.
-                                {{cost}}})</a-radio>
+                                {{ cost }})</a-radio>
                         </a-radio-group>
                     </a-row>
                 </a-col>
             </a-row>
-            <!-- <a-row type="flex" align="middle" class="qrow">
-                <a-col :span="1" class="required">*</a-col>
-                <a-col :span="23">
-                    <a-input-group>
-                        <a-row class="qrow">
-                            <label class="qrow qtitle">PILIH PENGIRIMAN : </label>
-                        </a-row>
-                        <a-row class="qrow" style="margin-top: -20px;">
-                            <a-radio-group v-model:value="send_type">
-                                <a-row v-for="item, idx in send_cost" :key="idx">
-                                    <a-radio :value="item.name" class="qtitle" :disabled="!item.is_enabled">{{ item.name
-                                        }}: Rp. {{
-                            item.price }}</a-radio>
-                                </a-row>
-                            </a-radio-group>
-                        </a-row>
-                    </a-input-group>
-                </a-col>
-            </a-row> -->
         </div>
     </div>
-    <ModalKanim :showModal="modal_select_kanim" :kanim="list_kanim" @closeModal="closeModal" />
 </template>
 <script>
 import { message } from "ant-design-vue";
 import { debounce } from 'lodash-es';
-import { FileDoneOutlined, InfoCircleOutlined, MailOutlined, EditOutlined } from '@ant-design/icons-vue';
+import { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined } from '@ant-design/icons-vue';
 import { GoogleMap, Marker } from 'vue3-google-map'
 import { phoneCode } from '../../js/phone_code.js';
-import { customFetch, KANIM, ADDRESS, POSTAL, SEND, ORDER } from '../../js/url.js';
-import ModalKanim from '../modal/ModalKanim.vue';
+import { customFetch, ADDRESS, ORDER, KANIM } from '../../js/url.js';
 import { useReCaptcha } from "vue-recaptcha-v3";
 
 export default {
@@ -252,33 +190,33 @@ export default {
         };
     },
     name: 'FormRegister',
-    components: { FileDoneOutlined, InfoCircleOutlined, MailOutlined, EditOutlined, GoogleMap, Marker, ModalKanim },
+    components: { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined, GoogleMap, Marker },
     data() {
         return {
+            name: "",
             email: "",
             cost: 0,
             use_materai: true,
-            send_type: 1,
-            send_cost: [],
             kanim: {},
             place_id: "",
-            list_kanim: [],
-            modal_select_kanim: false,
             phoneNumber: "",
             renderComponent: true,
             id: [],
             phoneCodeList: [],
             country: "🇮🇩 +62",
-            expand_detail: [],
+            selected_country: {
+                "name": "Indonesia",
+                "flag": "🇮🇩",
+                "code": "ID",
+                "dial_code": "+62"
+            },
             expand_maps: ['1'],
             detail_address: '',
-            postal_code: "",
-            postal_data: [],
-            selected_postal: {},
             address: "",
             address_data: [],
             selected_address: {},
             fetching: false,
+            initial_data: {},
             error: {
                 email: {
                     status: true,
@@ -291,6 +229,10 @@ export default {
                 id: {
                     status: true,
                     message: 'Nomor Permohonan harus diisi'
+                },
+                name: {
+                    status: true,
+                    message: 'Nama harus diisi'
                 }
             },
             maps_data: {
@@ -301,12 +243,76 @@ export default {
             }
         }
     },
+    emits: ["changeStep"],
     mounted() {
         this.phoneCodeList = this.sortByDialCodeAscending(phoneCode)
-        this.getKanimList()
+        let orderId = localStorage.getItem("order_id")
+        if (orderId != "" && orderId != undefined && orderId != null) {
+            this.getOrder(orderId)
+        }
     },
     methods: {
+        compareData() {
+            return this.initial_data.request_id == this.id &&
+                this.initial_data.name == this.name &&
+                this.initial_data.email == this.email &&
+                this.initial_data.address == this.address &&
+                this.initial_data.detail_address == this.detail_address &&
+                this.initial_data.phone == this.selected_country.dial_code + "-" + this.phoneNumber
+        },
+        getOrder(id) {
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                };
+                customFetch(ORDER + "/" + id, requestOptions, this.$route.meta)
+                    .then((data) => {
+                        if (data == undefined) {
+                            throw new Error("No data");
+                        }
+                        if (data.data == null || data.data.length == 0) {
+                            localStorage.removeItem("order_id");
+                            return
+                        }
+                        this.initial_data = data.data[0]
+                        this.id = data.data[0].request_id
+                        this.name = data.data[0].name
+                        this.checkName()
+                        this.email = data.data[0].email
+                        this.checkEmail()
+                        this.address = data.data[0].address
+                        this.selectAddress({ place_id: data.data[0].place_id, description: data.data[0].address })
+                        this.setPhone(data.data[0].phone)
+                        this.handleChange()
+                        this.detail_address = data.data[0].detail_address
+                    })
+                    .catch(() => {
+                    });
+            });
+        },
+        setPhone(phone) {
+            let arr = phone.split('-')
+            for (let i in this.phoneCodeList) {
+                if (this.phoneCodeList[i].dial_code == arr[0]) {
+                    this.selected_country = this.phoneCodeList[i]
+                    break
+                }
+            }
+            this.phoneNumber = arr[1]
+            this.checkPhone()
+        },
         next() {
+            console.log(this.compareData())
+            if (this.compareData()) {
+                this.$emit("changeStep", 1);
+                return
+            }
+
+            if (this.name == "") {
+                message.error("Nama harus diisi");
+                return
+            }
             if (this.email == "") {
                 message.error("Email harus diisi");
                 return
@@ -328,14 +334,22 @@ export default {
                 return
             }
             this.recaptcha().then((token) => {
-                let contryCode = this.country.split("+")[1];
+                let url = ORDER + "/" + this.kanim.code
+                let method = "POST"
+                let orderId = localStorage.getItem("order_id")
+
+                if (orderId != "" && orderId != undefined && orderId != null) {
+                    url = ORDER + "/" + orderId
+                    method = "PUT"
+                }
                 const requestOptions = {
-                    method: "POST",
+                    method: method,
                     headers: { "Content-Type": "application/json", "c-tok": token },
                     body: JSON.stringify({
                         request_id: this.id,
+                        name: this.name,
                         email: this.email,
-                        phone: "+" + contryCode + "-" + this.phoneNumber,
+                        phone: this.selected_country.dial_code + "-" + this.phoneNumber,
                         to_lat: this.maps_data.center.lat,
                         to_lng: this.maps_data.center.lng,
                         address: this.address,
@@ -344,81 +358,25 @@ export default {
                         use_materai: this.cost > 0 ? true : false
                     }),
                 };
-                customFetch(ORDER + "/" + this.kanim.code, requestOptions, this.$route.meta)
+                customFetch(url, requestOptions, this.$route.meta)
                     .then((data) => {
                         if (data == undefined) {
                             throw new Error("No data");
                         }
                         localStorage.setItem("order_id", data.data.order_id)
+                        this.$emit("changeStep", 1);
                     })
                     .catch(() => {
                     });
             });
         },
-        getSendPrice() {
-            this.recaptcha().then((token) => {
-                const requestOptions = {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "c-tok": token },
-                    body: JSON.stringify({
-                        kanim_code: this.kanim.code,
-                        target: {
-                            lat: this.maps_data.center.lat,
-                            lng: this.maps_data.center.lng
-                        }
-                    }),
-                };
-                customFetch(SEND + "/price", requestOptions, this.$route.meta)
-                    .then((data) => {
-                        if (data == undefined) {
-                            throw new Error("No data");
-                        }
-                        this.send_cost = data.data
-                    })
-                    .catch(() => {
-                    });
-            });
-        },
-        closeModal(value) {
-            this.kanim = value
-            this.modal_select_kanim = false
-            let queryParams = new URLSearchParams(window.location.search);
-            queryParams.set("kanim", this.kanim.code)
-            window.history.pushState({}, "", "?" + queryParams.toString());
-            // this.getSendPrice(this.kanim.lat, this.kanim.lng, this.maps_data.center.lat, this.maps_data.center.lng)
-        },
-        getKanimList() {
-            customFetch(KANIM, null, this.$route.meta)
-                .then((data) => {
-                    if (data == undefined) {
-                        throw new Error("No data");
-                    }
-                    this.list_kanim = data.data
-                    const urlParams = new URLSearchParams(window.location.search);
-                    let param = urlParams.get("kanim");
-                    if (param == null || param == "" || param == undefined) {
-                        this.modal_select_kanim = true
-                    } else {
-                        let isValid = false
-                        for (let i in this.list_kanim) {
-                            if (this.list_kanim[i].code == parseInt(param)) {
-                                this.kanim = this.list_kanim[i]
-                                isValid = true
-                                break
-                            }
-                        }
-                        if (!isValid) {
-                            this.modal_select_kanim = true
-                        }
-                        this.maps_data.center.lat = this.kanim.lat
-                        this.maps_data.center.lng = this.kanim.lng
-                        this.maps_data.markerPosition.lat = this.kanim.lat
-                        this.maps_data.markerPosition.lng = this.kanim.lng
-                        this.forceRerender()
-                    }
-                })
-                .catch(() => {
-                });
+        checkName() {
+            if (this.name == "") {
+                this.error.name.status = true
+                this.error.name.message = "Nama harus diisi"
+            } else {
+                this.error.name.status = false
+            }
         },
         checkEmail() {
             if (this.email == "") {
@@ -427,7 +385,6 @@ export default {
                 return
             }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            console.log(emailRegex.test(this.email))
             if (emailRegex.test(this.email)) {
                 this.error.email.status = false
             } else {
@@ -455,7 +412,7 @@ export default {
             });
         },
         selectCountryCode(item) {
-            console.log(item)
+            this.selected_country = item
         },
         preventNonNumericInput(event) {
             const allowedKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete']; // Allowed keys
@@ -463,18 +420,54 @@ export default {
                 event.preventDefault(); // Prevent input if key is not a number or allowed control key
             }
         },
-
         handleChange() {
-            if (this.id.length > 0) {
-                this.error.id.status = false
-            } else {
+            if (this.id.length == 0) {
                 this.error.id.status = true
                 this.error.id.message = "Nomor Permohonan harus diisi"
+            } else {
+                for (let i in this.id) {
+                    if (this.id[i].length < 16) {
+                        message.error("Nomor Permohonan yang anda masukkan salah")
+                        this.id.splice(i, 1);
+                        return
+                    } else {
+                        if (i == 0) {
+                            this.kanim.code = this.id[i].substring(0, 3);
+                            this.getKanim()
+                        } else {
+                            if (this.kanim.code != this.id[i].substring(0, 3)) {
+                                message.error("Nomor Permohonan yang anda masukkan berada di kanim yang berbeda")
+                                this.id.splice(i, 1);
+                                return
+                            }
+                        }
+                    }
+                }
             }
+            this.error.id.status = false
             this.cost = 10000 * this.id.length
         },
-        selectId(item) {
-            console.log(item)
+        getKanim() {
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                }
+                customFetch(KANIM + "/" + this.kanim.code, requestOptions, this.$route.meta)
+                    .then((data) => {
+                        if (data == undefined) {
+                            throw new Error("No data");
+                        }
+                        if (data.data == null || data.data.length == 0) {
+                            message.error("Nomor Permohonan yang anda masukkan tidak ditemukan")
+                            this.id = []
+                            return
+                        }
+                        this.kanim = data.data[0]
+                    })
+                    .catch(() => {
+                    });
+            });
         },
         async forceRerender() {
             // Remove MyComponent from the DOM
@@ -517,34 +510,6 @@ export default {
             });
 
         },
-        selectPostal(item) {
-            this.postal_code = item.code + ' - ' + item.urban
-            this.selected_postal = item
-            this.expand_detail = ['1']
-        },
-        fetchData: debounce(function (value) {
-            if (value != "") {
-                this.fetching = true;
-                this.recaptcha().then((token) => {
-                    const requestOptions = {
-                        method: "GET",
-                        headers: { "Content-Type": "application/json", "c-tok": token },
-                    }
-                    customFetch(POSTAL + '?q=' + value, requestOptions, this.$route.meta)
-                        .then((data) => {
-                            this.postal_data = data.data;
-                            this.fetching = false;
-                        })
-                        .catch(() => {
-                            this.fetching = false;
-                        });
-                });
-
-            } else {
-                this.postal_data = [];
-            }
-
-        }, 300),
         fetchAddress: debounce(function (value) {
             if (value != "") {
                 this.fetching = true;

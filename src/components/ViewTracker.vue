@@ -9,9 +9,10 @@
             </template>
             <StepRegister :current="step" :isMobile="is_mobile" style="margin-bottom: 25px;"/>
             <div v-if="step == 0">
-                <FormRegister />
+                <FormRegister @changeStep="changeStep" />
             </div>
             <div v-else-if="step == 1">
+                <FormReview @changeStep="changeStep" />
             </div>
             <div v-else-if="step == 2">
             </div>
@@ -32,10 +33,11 @@
 <script>
 import { AppstoreAddOutlined, FileSearchOutlined } from '@ant-design/icons-vue';
 import FormRegister from './form/FormRegister.vue';
+import FormReview from './form/FormReview.vue';
 import StepRegister from './step/StepRegister.vue';
 
 export default {
-    components: { AppstoreAddOutlined, FileSearchOutlined, FormRegister, StepRegister },
+    components: { AppstoreAddOutlined, FileSearchOutlined, FormRegister, FormReview, StepRegister },
     data() {
         return {
             activeKey: 'register',
@@ -47,6 +49,11 @@ export default {
         is_mobile: Boolean
     },
     mounted() {
+    },
+    methods:{
+        changeStep(value){
+            this.step = value
+        }
     }
 }
 </script>
