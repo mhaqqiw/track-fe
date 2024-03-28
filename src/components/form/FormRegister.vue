@@ -142,10 +142,70 @@
                             :header="maps_data.markerPosition.lat ? 'Latitude: ' + maps_data.markerPosition.lat + '; Longitude: ' + maps_data.markerPosition.lng : 'NA'">
                             <GoogleMap v-if="renderComponent" api-key="AIzaSyC8Xa5ec0TBZ_1Fc4hlax9JrsRQLVg1Pmk"
                                 :center="maps_data.center" :zoom="maps_data.zoom" style="height: 400px; width: 100%">
-                                <Marker :options="{ position: maps_data.markerPosition }" :draggable="true" />
+                                <Marker :options="{ position: maps_data.markerPosition, draggable: true }"
+                                    @dragend="markerDragend">
+                                    <InfoWindow>
+                                        <div id="content">
+                                            <div id="siteNotice"></div>
+                                            <h1 id="firstHeading" class="firstHeading">{{ address }}</h1>
+                                            <div id="bodyContent">
+                                                {{ detail_address }}
+                                                <p>Attribution: Testing, <a
+                                                        href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">
+                                                        https://en.wikipedia.org/w/index.php?title=Uluru</a>
+                                                    (last visited June 22, 2009).</p>
+                                            </div>
+                                        </div>
+                                    </InfoWindow>
+                                </Marker>
+                                <Marker :options="{ position: { lat: kanim.lat, lng: kanim.lng } }">
+                                    <InfoWindow>
+                                        <div id="content">
+                                            <div id="siteNotice"></div>
+                                            <h1 id="firstHeading" class="firstHeading">{{ kanim.name }}</h1>
+                                            <div id="bodyContent">
+                                                {{ kanim.address }}
+                                                <p>Attribution: Kanim, <a
+                                                        href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">
+                                                        https://en.wikipedia.org/w/index.php?title=Uluru</a>
+                                                    (last visited June 22, 2009).</p>
+                                            </div>
+                                        </div>
+                                    </InfoWindow>
+                                </Marker>
                             </GoogleMap>
+                            <div id="map"></div>
                         </a-collapse-panel>
                     </a-collapse>
+                </a-col>
+            </a-row>
+            <a-row type="flex" align="middle" class="qrow">
+                <a-col :span="1" class="required">*</a-col>
+                <a-col :span="23">
+                    <a-row>
+                        <label class="qtitle">Biaya Pengiriman:</label>
+                    </a-row>
+                    <a-row v-if="send_cost.length > 0">
+                        <a-col style="width: 100%">
+                            <a-row>
+                                <a-col :span="10" class="qtitle">Jasa Pengiriman:</a-col>
+                                <a-col>{{ send_cost[0].name }}</a-col>
+                            </a-row>
+                            <a-row>
+                                <a-col :span="10" class="qtitle">Tipe Pengiriman:</a-col>
+                                <a-col v-if="error.send.status">{{ error.send.message }}</a-col>
+                                <a-col v-else>{{ send_cost[0].type }}</a-col>
+                            </a-row>
+                            <a-row>
+                                <a-col :span="10" class="qtitle">Jarak:</a-col>
+                                <a-col>{{ send_cost[0].distance }}</a-col>
+                            </a-row>
+                            <a-row>
+                                <a-col :span="10" class="qtitle">Harga:</a-col>
+                                <a-col>Rp. {{ send_cost[0].price }}</a-col>
+                            </a-row>
+                        </a-col>
+                    </a-row>
                 </a-col>
             </a-row>
             <a-row type="flex" align="middle" class="qrow">
@@ -171,9 +231,9 @@
 import { message } from "ant-design-vue";
 import { debounce } from 'lodash-es';
 import { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined } from '@ant-design/icons-vue';
-import { GoogleMap, Marker } from 'vue3-google-map'
+import { GoogleMap, Marker, InfoWindow } from 'vue3-google-map'
 import { phoneCode } from '../../js/phone_code.js';
-import { customFetch, ADDRESS, ORDER, KANIM } from '../../js/url.js';
+import { customFetch, ADDRESS, ORDER, KANIM, SEND } from '../../js/url.js';
 import { useReCaptcha } from "vue-recaptcha-v3";
 
 export default {
@@ -190,14 +250,15 @@ export default {
         };
     },
     name: 'FormRegister',
-    components: { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined, GoogleMap, Marker },
+    components: { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined, GoogleMap, Marker, InfoWindow },
     data() {
         return {
             name: "",
             email: "",
             cost: 0,
+            send_cost: [],
             use_materai: true,
-            kanim: {},
+            kanim: { lat: -6.2215099, lng: 106.8293873 },
             place_id: "",
             phoneNumber: "",
             renderComponent: true,
@@ -219,27 +280,31 @@ export default {
             initial_data: {},
             error: {
                 email: {
-                    status: true,
+                    status: false,
                     message: 'Email harus diisi'
                 },
                 phone: {
-                    status: true,
+                    status: false,
                     message: 'Nomor Telepon harus diisi'
                 },
                 id: {
-                    status: true,
+                    status: false,
                     message: 'Nomor Permohonan harus diisi'
                 },
                 name: {
-                    status: true,
+                    status: false,
                     message: 'Nama harus diisi'
+                },
+                send: {
+                    status: false,
+                    message: "Jasa Pengiriman tidak tersedia"
                 }
             },
             maps_data: {
                 locationInput: null,
                 center: { lat: -6.2215099, lng: 106.8293873 },
                 markerPosition: { lat: -6.2215099, lng: 106.8293873 },
-                zoom: 19,
+                zoom: 10,
             }
         }
     },
@@ -252,6 +317,11 @@ export default {
         }
     },
     methods: {
+        markerDragend(event) { 
+            this.maps_data.markerPosition.lat = event.latLng.lat()
+            this.maps_data.markerPosition.lng = event.latLng.lng() 
+            this.getPrice()
+        },
         compareData() {
             return this.initial_data.request_id == this.id &&
                 this.initial_data.name == this.name &&
@@ -331,6 +401,10 @@ export default {
             }
             if (this.id.length == 0) {
                 message.error("Nomor Permohonan harus diisi");
+                return
+            }
+            if (this.error.send.status) {
+                message.error(this.error.send.message);
                 return
             }
             this.recaptcha().then((token) => {
@@ -420,6 +494,45 @@ export default {
                 event.preventDefault(); // Prevent input if key is not a number or allowed control key
             }
         },
+        getPrice() {
+            if (this.kanim.code == undefined || this.maps_data.markerPosition.lat == 0 || this.maps_data.markerPosition.lng == 0) {
+                return
+            }
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                    body: JSON.stringify({
+                        kanim_code: this.kanim.code,
+                        target: {
+                            lat: this.maps_data.markerPosition.lat,
+                            lng: this.maps_data.markerPosition.lng
+                        }
+                    })
+                }
+                customFetch(SEND + "/price", requestOptions, this.$route.meta)
+                    .then((data) => {
+                        if (data == undefined) {
+                            throw new Error("No data");
+                        }
+                        if (data.data == null || data.data.length == 0) {
+                            message.error("Tidak ada jasa pengiriman yang tersedia")
+                            this.error.send.status = true
+                            this.error.send.message = "Tidak ada jasa pengiriman yang tersedia"
+                            return
+                        }
+                        if (data.data[0].price == 0) {
+                            message.error("anda melebihi batas pengiriman, maximum jarak pengiriman adalah " + data.data[0].max_distance + " km")
+                            this.error.send.status = true
+                            this.error.send.message = "anda melebihi batas pengiriman, maximum jarak pengiriman adalah " + data.data[0].max_distance + " km"
+                            return
+                        }
+                        this.send_cost = data.data
+                    })
+                    .catch(() => {
+                    });
+            });
+        },
         handleChange() {
             if (this.id.length == 0) {
                 this.error.id.status = true
@@ -446,6 +559,7 @@ export default {
             }
             this.error.id.status = false
             this.cost = 10000 * this.id.length
+            this.getPrice()
         },
         getKanim() {
             this.recaptcha().then((token) => {
@@ -464,6 +578,7 @@ export default {
                             return
                         }
                         this.kanim = data.data[0]
+                        this.forceRerender()
                     })
                     .catch(() => {
                     });
@@ -502,7 +617,7 @@ export default {
                         }
                         this.expand_maps = ['1']
                         this.fetching = false;
-                        // this.getSendPrice(this.kanim.lat, this.kanim.lng, this.maps_data.center.lat, this.maps_data.center.lng)
+                        this.getPrice()
                     })
                     .catch(() => {
                         this.fetching = false;
