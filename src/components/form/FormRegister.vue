@@ -198,7 +198,7 @@
                             </a-row>
                             <a-row>
                                 <a-col :span="10" class="qtitle">Jarak:</a-col>
-                                <a-col>{{ send_cost[0].distance }}</a-col>
+                                <a-col>{{ send_cost[0].distance.toFixed(2) }} Km</a-col>
                             </a-row>
                             <a-row>
                                 <a-col :span="10" class="qtitle">Harga:</a-col>
@@ -325,9 +325,9 @@ export default {
         }
     },
     methods: {
-        markerDragend(event) { 
+        markerDragend(event) {
             this.maps_data.markerPosition.lat = event.latLng.lat()
-            this.maps_data.markerPosition.lng = event.latLng.lng() 
+            this.maps_data.markerPosition.lng = event.latLng.lng()
             this.getPrice()
         },
         compareData() {
@@ -336,7 +336,9 @@ export default {
                 this.initial_data.email == this.email &&
                 this.initial_data.address == this.address &&
                 this.initial_data.detail_address == this.detail_address &&
-                this.initial_data.phone == this.selected_country.dial_code + "-" + this.phoneNumber
+                this.initial_data.phone == this.selected_country.dial_code + "-" + this.phoneNumber &&
+                this.initial_data.to_lat == this.maps_data.markerPosition.lat &&
+                this.initial_data.to_lng == this.maps_data.markerPosition.lng
         },
         getOrder(id) {
             this.recaptcha().then((token) => {
@@ -360,7 +362,9 @@ export default {
                         this.email = data.data[0].order_data.email
                         this.checkEmail()
                         this.address = data.data[0].order_data.address
-                        this.selectAddress({ place_id: data.data[0].order_data.place_id, description: data.data[0].order_data.address })
+                        this.maps_data.markerPosition.lat = data.data[0].order_data.to_lat
+                        this.maps_data.markerPosition.lng = data.data[0].order_data.to_lng
+                        this.selectAddress({ place_id: data.data[0].order_data.place_id, description: data.data[0].order_data.address }, false)
                         this.setPhone(data.data[0].order_data.phone)
                         this.handleChange()
                         this.detail_address = data.data[0].order_data.detail_address
@@ -379,6 +383,22 @@ export default {
             }
             this.phoneNumber = arr[1]
             this.checkPhone()
+        },
+        getCenterCoordinate(coord1, coord2) {
+            // Extract latitude and longitude from coordinates
+            let lat1 = coord1.lat;
+            let lng1 = coord1.lng;
+            let lat2 = coord2.lat;
+            let lng2 = coord2.lng;
+
+            console.log(lat1, lng1, lat2, lng2)
+
+            // Calculate the center coordinates
+            let centerLat = (lat1 + lat2) / 2;
+            let centerLng = (lng1 + lng2) / 2;
+
+            // Return the center coordinates
+            return { lat: centerLat, lng: centerLng };
         },
         next() {
             if (this.compareData()) {
@@ -431,8 +451,8 @@ export default {
                         name: this.name,
                         email: this.email,
                         phone: this.selected_country.dial_code + "-" + this.phoneNumber,
-                        to_lat: this.maps_data.center.lat,
-                        to_lng: this.maps_data.center.lng,
+                        to_lat: this.maps_data.markerPosition.lat,
+                        to_lng: this.maps_data.markerPosition.lng,
                         address: this.address,
                         detail: this.detail_address,
                         place_id: this.place_id,
@@ -592,6 +612,7 @@ export default {
             });
         },
         async forceRerender() {
+            this.maps_data.center = this.getCenterCoordinate(this.maps_data.markerPosition, { lat: this.kanim.lat, lng: this.kanim.lng })
             // Remove MyComponent from the DOM
             this.renderComponent = false;
 
@@ -601,7 +622,7 @@ export default {
             // Add the component back in
             this.renderComponent = true;
         },
-        selectAddress(item) {
+        selectAddress(item, updateCoordinate = true) {
             this.place_id = item.place_id
             this.recaptcha().then((token) => {
                 const requestOptions = {
@@ -615,11 +636,11 @@ export default {
                         }
                         let candidates = data.data.candidates
                         if (candidates.length > 0) {
-                            this.maps_data.center.lat = candidates[0].geometry.location.lat;
-                            this.maps_data.center.lng = candidates[0].geometry.location.lng;
 
-                            this.maps_data.markerPosition.lat = candidates[0].geometry.location.lat;
-                            this.maps_data.markerPosition.lng = candidates[0].geometry.location.lng;
+                            if (updateCoordinate) {
+                                this.maps_data.markerPosition.lat = candidates[0].geometry.location.lat;
+                                this.maps_data.markerPosition.lng = candidates[0].geometry.location.lng;
+                            }
                             this.forceRerender()
                         }
                         this.expand_maps = ['1']

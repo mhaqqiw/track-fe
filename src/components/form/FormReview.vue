@@ -108,7 +108,7 @@
         </div>
         <div v-if="order != null">
             <GoogleMap api-key="AIzaSyC8Xa5ec0TBZ_1Fc4hlax9JrsRQLVg1Pmk"
-                :center="{ lat: order.order_data.to_lat, lng: order.order_data.to_lng }" :zoom="10"
+                :center="getCenterCoordinate({ lat: order.order_data.to_lat, lng: order.order_data.to_lng }, {lat: order.order_data.from_lat, lng: order.order_data.from_lng})" :zoom="10"
                 style="height: 400px; width: 100%">
                 <Marker :options="{ position: { lat: order.order_data.to_lat, lng: order.order_data.to_lng } }">
                     <InfoWindow>
@@ -182,6 +182,23 @@ export default {
 
     },
     methods: {
+        getCenterCoordinate(coord1, coord2) {
+            
+            // Extract latitude and longitude from coordinates
+            let lat1 = coord1.lat;
+            let lng1 = coord1.lng;
+            let lat2 = coord2.lat;
+            let lng2 = coord2.lng;
+
+            console.log(lat1, lng1, lat2, lng2)
+
+            // Calculate the center coordinates
+            let centerLat = (lat1 + lat2) / 2;
+            let centerLng = (lng1 + lng2) / 2;
+
+            // Return the center coordinates
+            return { lat: centerLat, lng: centerLng };
+        },
         getData(id) {
             this.recaptcha().then((token) => {
                 const requestOptions = {
