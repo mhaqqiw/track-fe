@@ -436,7 +436,7 @@ export default {
                         address: this.address,
                         detail: this.detail_address,
                         place_id: this.place_id,
-                        use_materai: this.cost > 0 ? true : false
+                        use_materai: false
                     }),
                 };
                 customFetch(url, requestOptions, this.$route.meta)

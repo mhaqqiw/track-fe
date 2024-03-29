@@ -34,6 +34,12 @@
                         <a-col :span="5" class="qtitle">Jarak</a-col>
                         <a-col>{{ order.distance.toFixed(2) }} Km</a-col>
                     </a-row>
+                    <a-row>
+                        <a-col :span="5" class="qtitle">Nomor Permohonan</a-col>
+                        <a-col>
+                            <a-tag v-for="item in order.order_data.request_id" :key="item" color="#2db7f5">{{item}}</a-tag>
+                        </a-col>
+                    </a-row>
                 </div>
             </a-row>
             <a-row>
