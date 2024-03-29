@@ -15,6 +15,7 @@
                 <FormReview @changeStep="changeStep" />
             </div>
             <div v-else-if="step == 2">
+                <FormProduct @changeStep="changeStep" />
             </div>
             <div v-else-if="step == 3">
             </div>
@@ -34,10 +35,11 @@
 import { AppstoreAddOutlined, FileSearchOutlined } from '@ant-design/icons-vue';
 import FormRegister from './form/FormRegister.vue';
 import FormReview from './form/FormReview.vue';
+import FormProduct from './form/FormProduct.vue';
 import StepRegister from './step/StepRegister.vue';
 
 export default {
-    components: { AppstoreAddOutlined, FileSearchOutlined, FormRegister, FormReview, StepRegister },
+    components: { AppstoreAddOutlined, FileSearchOutlined, FormRegister, FormReview, FormProduct, StepRegister },
     data() {
         return {
             activeKey: 'register',

@@ -208,7 +208,7 @@
                     </a-row>
                 </a-col>
             </a-row>
-            <a-row type="flex" align="middle" class="qrow">
+            <!-- <a-row type="flex" align="middle" class="qrow">
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
                     <a-row>
@@ -221,6 +221,14 @@
                             <a-radio :value="true">Tidak, (Anda dapat membeli materai ke petugas seharga Rp.
                                 {{ cost }})</a-radio>
                         </a-radio-group>
+                    </a-row>
+                </a-col>
+            </a-row> -->
+            <a-row type="flex" align="middle" class="qrow">
+                <a-col :span="1" class="required">*</a-col>
+                <a-col :span="23">
+                    <a-row>
+                        <label class="qtitle">Biaya Layanan: Rp. 20.000</label>
                     </a-row>
                 </a-col>
             </a-row>
@@ -257,7 +265,7 @@ export default {
             email: "",
             cost: 0,
             send_cost: [],
-            use_materai: true,
+            use_materai: false,
             kanim: { lat: -6.2215099, lng: 106.8293873 },
             place_id: "",
             phoneNumber: "",
@@ -345,17 +353,17 @@ export default {
                             localStorage.removeItem("order_id");
                             return
                         }
-                        this.initial_data = data.data[0]
-                        this.id = data.data[0].request_id
-                        this.name = data.data[0].name
+                        this.initial_data = data.data[0].order_data
+                        this.id = data.data[0].order_data.request_id
+                        this.name = data.data[0].order_data.name
                         this.checkName()
-                        this.email = data.data[0].email
+                        this.email = data.data[0].order_data.email
                         this.checkEmail()
-                        this.address = data.data[0].address
-                        this.selectAddress({ place_id: data.data[0].place_id, description: data.data[0].address })
-                        this.setPhone(data.data[0].phone)
+                        this.address = data.data[0].order_data.address
+                        this.selectAddress({ place_id: data.data[0].order_data.place_id, description: data.data[0].order_data.address })
+                        this.setPhone(data.data[0].order_data.phone)
                         this.handleChange()
-                        this.detail_address = data.data[0].detail_address
+                        this.detail_address = data.data[0].order_data.detail_address
                     })
                     .catch(() => {
                     });
@@ -373,7 +381,6 @@ export default {
             this.checkPhone()
         },
         next() {
-            console.log(this.compareData())
             if (this.compareData()) {
                 this.$emit("changeStep", 1);
                 return
