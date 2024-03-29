@@ -14,6 +14,6 @@ const app = createApp(App);
 app.component('v-select', vSelect)
 app.use(Antd);
 app.use(VueMobileDetection);
-app.use(VueReCaptcha, { siteKey: "6LesDnYiAAAAAGn--ho0x_GJvenWu-Nv0ls5cJYO" });
+app.use(VueReCaptcha, { siteKey: "6LeryqgpAAAAAAVAu2AF7QE0_FNzuxpKZp5PBcoy" });
 app.use(router)
 app.mount('#app')
