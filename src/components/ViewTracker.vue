@@ -7,12 +7,12 @@
                     Buat Permohonan
                 </span>
             </template>
-            <StepRegister :current="step" :isMobile="is_mobile" style="margin-bottom: 25px;"/>
+            <StepRegister :current="step" :isMobile="is_mobile" style="margin-bottom: 25px;" />
             <div v-if="step == 0">
                 <FormRegister @changeStep="changeStep" />
             </div>
             <div v-else-if="step == 1">
-                <FormReview @changeStep="changeStep" />
+                <FormReview @changeStep="changeStep" :isMobile="is_mobile" />
             </div>
             <div v-else-if="step == 2">
                 <FormProduct @changeStep="changeStep" />
@@ -52,8 +52,8 @@ export default {
     },
     mounted() {
     },
-    methods:{
-        changeStep(value){
+    methods: {
+        changeStep(value) {
             this.step = value
         }
     }

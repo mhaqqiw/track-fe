@@ -17,9 +17,49 @@
 </div>
 </template>
 <script>
+import { customFetch, PRODUCT } from '../../js/url.js';
+import { useReCaptcha } from "vue-recaptcha-v3";
+
 export default {
     name: 'FormProduct',
+    setup() {
+        const { executeRecaptcha, recaptchaLoaded } = useReCaptcha();
+
+        const recaptcha = async () => {
+            await recaptchaLoaded();
+            const token = await executeRecaptcha("login");
+            return token;
+        };
+        return {
+            recaptcha,
+        };
+    },
+    data() {
+        return {
+            products: [],
+        }
+    },
+    mounted() {
+        this.getProduct()
+    },
     methods: {
+        getProduct() {
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                };
+                customFetch(PRODUCT, requestOptions, this.$route.meta)
+                    .then((data) => {
+                        if (data == undefined) {
+                            throw new Error("No data");
+                        }
+                        this.products = data.data
+                    })
+                    .catch(() => {
+                    });
+            });
+        },
         back() {
             this.$emit("changeStep", 1);
         },

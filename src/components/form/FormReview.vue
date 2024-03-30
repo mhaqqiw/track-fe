@@ -42,8 +42,8 @@
                     </a-row>
                 </div>
             </a-row>
-            <a-row>
-                <a-col style="max-width: 50%;">
+            <a-flex justify="space-evenly" :align="'center'" gap="small" wrap="wrap">
+                <div style="width: 500px;">
                     <div class="qtitle" align="center">Detail Pengiriman:</div>
                     <div>
                         <a-row class="qtitle" align="center">
@@ -81,15 +81,15 @@
                             </div>
                         </a-row>
                     </div>
-                </a-col>
-                <a-col style="width: 50%;">
+                </div>
+                <div style="max-width: 100%;">
                     <a-row class="qtitle" align="center">
                         Biaya:
                     </a-row>
-                    <a-list class="qcard" item-layout="horizontal" :data-source="order.cost_data">
+                    <a-list class="qcard" item-layout="horizontal" :data-source="order.cost_data" style="max-width: 100%;overflow-x: auto;">
                         <template #renderItem="{ item }">
                             <a-list-item>
-                                <a-row style="width: 100%;" align="center">
+                                <a-row style="min-width: 500px;" align="center">
                                     <a-col :span="6" :align="item.is_title ? 'center' : 'left'"
                                         :class="{ qtitle: item.is_title }">{{ item.name }}</a-col>
                                     <a-col :span="4" :class="{ qtitle: item.is_title }">{{ item.quantity }}</a-col>
@@ -103,8 +103,8 @@
                             </a-list-item>
                         </template>
                     </a-list>
-                </a-col>
-            </a-row>
+                </div>
+            </a-flex>
         </div>
         <div v-if="order != null">
             <GoogleMap api-key="AIzaSyC8Xa5ec0TBZ_1Fc4hlax9JrsRQLVg1Pmk"
@@ -163,6 +163,10 @@ export default {
         return {
             recaptcha,
         };
+    },
+    props: {
+        user: Object,
+        is_mobile: Boolean
     },
     data() {
         return {
