@@ -13,8 +13,8 @@
         Coba QR Code
         <label>QR CODE Value: {{ txt }}</label>
         <a-button @click="tambah">Tambah</a-button>
-        <QrcodeStream :constraints="{ deviceId: selectedDevice.deviceId }" :track="trackFunctionSelected"
-            @error="onError" @detect="onDetect" v-if="selectedDevice !== null">
+        <QrcodeStream :constraints="getConstraints()" :track="trackFunctionSelected" @error="onError" @detect="onDetect"
+            v-if="selectedDevice !== null">
         </QrcodeStream>
     </div>
 </template>
@@ -50,11 +50,22 @@ export default {
             this.$emit("changeStep", 2);
         },
         async getDevice() {
-            this.devices = await navigator.mediaDevices.enumerateDevices()
-            this.devices = this.devices.filter(({ kind }) => kind === 'videoinput')
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                // Handle case where mediaDevices or enumerateDevices is not available
+                console.error('MediaDevices API not available');
+                return;
+            }
 
-            if (this.devices.length > 0) {
-                this.selectedDevice = this.devices[0]
+            try {
+                this.devices = await navigator.mediaDevices.enumerateDevices();
+                this.devices = this.devices.filter(({ kind }) => kind === 'videoinput');
+
+                if (this.devices.length > 0) {
+                    this.selectedDevice = this.devices[0];
+                }
+            } catch (error) {
+                // Handle any errors that might occur during enumeration
+                console.error('Error enumerating devices:', error);
             }
         },
         tambah() {
@@ -115,6 +126,20 @@ export default {
                 ctx.fillStyle = '#5cb984'
                 ctx.fillText(rawValue, centerX, centerY)
             }
+        },
+        getConstraints() {
+            if (this.isMobileDevice()) {
+                return {
+                    facingMode: "environment" // Use the rear camera on mobile devices
+                };
+            } else {
+                return {
+                    deviceId: this.selectedDevice.deviceId
+                };
+            }
+        },
+        isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
     }
 }
