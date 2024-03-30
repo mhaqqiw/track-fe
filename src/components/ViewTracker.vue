@@ -18,6 +18,7 @@
                 <FormProduct @changeStep="changeStep" />
             </div>
             <div v-else-if="step == 3">
+                <FormPayment @changeStep="changeStep" />
             </div>
         </a-tab-pane>
         <a-tab-pane key="track">
@@ -37,9 +38,10 @@ import FormRegister from './form/FormRegister.vue';
 import FormReview from './form/FormReview.vue';
 import FormProduct from './form/FormProduct.vue';
 import StepRegister from './step/StepRegister.vue';
+import FormPayment from './form/FormPayment.vue';
 
 export default {
-    components: { AppstoreAddOutlined, FileSearchOutlined, FormRegister, FormReview, FormProduct, StepRegister },
+    components: { AppstoreAddOutlined, FileSearchOutlined, FormRegister, FormReview, FormProduct, FormPayment, StepRegister },
     data() {
         return {
             activeKey: 'register',

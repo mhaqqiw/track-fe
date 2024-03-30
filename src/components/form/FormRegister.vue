@@ -522,7 +522,7 @@ export default {
             }
         },
         getPrice() {
-            if (this.kanim.code == undefined || this.maps_data.markerPosition.lat == 0 || this.maps_data.markerPosition.lng == 0) {
+            if (this.kanim == {} || this.maps_data.markerPosition.lat == 0 || this.maps_data.markerPosition.lng == 0) {
                 return
             }
             this.recaptcha().then((token) => {
