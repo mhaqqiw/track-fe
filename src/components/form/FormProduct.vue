@@ -97,6 +97,7 @@ export default {
         PlusOutlined,
         MinusOutlined
     },
+    emits: ["changeStep"],
     setup() {
         const { executeRecaptcha, recaptchaLoaded } = useReCaptcha();
 
