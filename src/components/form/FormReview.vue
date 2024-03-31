@@ -148,6 +148,7 @@
 import { GoogleMap, Marker, InfoWindow } from 'vue3-google-map'
 import { customFetch, ORDER } from '../../js/url.js';
 import { useReCaptcha } from "vue-recaptcha-v3";
+import { formatCurrency } from '../../js/module.js'
 
 export default {
     name: 'FormReview',
@@ -170,6 +171,7 @@ export default {
     },
     data() {
         return {
+            formatCurrency: formatCurrency,
             order: null,
             show_detail: false,
             cost: [],
@@ -193,8 +195,6 @@ export default {
             let lng1 = coord1.lng;
             let lat2 = coord2.lat;
             let lng2 = coord2.lng;
-
-            console.log(lat1, lng1, lat2, lng2)
 
             // Calculate the center coordinates
             let centerLat = (lat1 + lat2) / 2;
@@ -251,27 +251,6 @@ export default {
         back() {
             this.$emit("changeStep", 0);
         },
-        formatCurrency(amount) {
-            // Convert the integer amount to a string
-            let strAmount = amount.toString();
-
-            // Determine the position of the decimal point
-            let decimalIndex = strAmount.length - 2;
-
-            // Insert commas for thousands separator
-            for (let i = decimalIndex - 3; i > 0; i -= 3) {
-                strAmount = strAmount.slice(0, i) + ',' + strAmount.slice(i);
-            }
-
-            // If the number is negative, prepend a '-'
-            if (amount < 0) {
-                strAmount = '-' + strAmount;
-            }
-
-            // Add the currency symbol and return the formatted string
-            return 'Rp. ' + strAmount;
-        }
-
     }
 }
 </script>

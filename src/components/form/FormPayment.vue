@@ -9,138 +9,146 @@
             </a-flex>
         </div>
     </div>
-    <div class="qcard">
-        Coba QR Code
-        <label>QR CODE Value: {{ txt }}</label>
-        <a-button @click="tambah">Tambah</a-button>
-        <QrcodeStream :constraints="getConstraints()" :track="trackFunctionSelected" @error="onError" @detect="onDetect"
-            v-if="selectedDevice !== null">
-        </QrcodeStream>
+    <div class="qcard" v-if="order != null">
+        <a-list class="qcard" item-layout="horizontal" :data-source="order.cost_data"
+            style="max-width: 100%;overflow-x: auto;">
+            <template #renderItem="{ item }">
+                <a-list-item>
+                    <a-row style="min-width: 500px;" align="center">
+                        <a-col :span="6" :align="item.is_title ? 'center' : 'left'"
+                            :class="{ qtitle: item.is_title }">{{ item.name }}</a-col>
+                        <a-col :span="4" :class="{ qtitle: item.is_title }">{{ item.quantity }}</a-col>
+                        <a-col :span="6" :class="{ qtitle: item.is_title || item.is_last }">{{ item.is_title
+                        || item.is_last ? item.price :
+                        formatCurrency(item.price) }}</a-col>
+                        <a-col :span="8" :class="{ qtitle: item.is_title || item.is_last }">{{ item.is_title
+                        ? item.total
+                        : formatCurrency(item.total) }}</a-col>
+                    </a-row>
+                </a-list-item>
+            </template>
+        </a-list>
     </div>
+    <a-button type="primary" align="center" @click="pay">Bayar</a-button>
 </template>
 
 <script>
-import { QrcodeStream } from 'vue-qrcode-reader'
+import { customFetch, ORDER, ADDITIONAL } from '../../js/url.js';
+import { useReCaptcha } from "vue-recaptcha-v3";
+import { formatCurrency } from '../../js/module.js'
 
 export default {
     name: 'FormPayment',
-    components: { QrcodeStream },
+    components: {},
     emits: ["changeStep"],
     data() {
         return {
-            selectedDevice: null,
-            devices: null,
-            txt: null,
-            trackFunctionSelected: null,
-            trackFunctionOptions: []
+            formatCurrency: formatCurrency,
+            order: null,
+            adds: [],
+            total: 0
         }
     },
-    async mounted() {
-        await this.getDevice()
-        this.trackFunctionOptions = [
-            { text: 'nothing (default)', value: undefined },
-            { text: 'outline', value: this.paintOutline },
-            { text: 'centered text', value: this.paintCenterText },
-            { text: 'bounding box', value: this.paintBoundingBox }
-        ]
-        this.trackFunctionSelected = this.trackFunctionOptions[1].value
+    setup() {
+        const { executeRecaptcha, recaptchaLoaded } = useReCaptcha();
+
+        const recaptcha = async () => {
+            await recaptchaLoaded();
+            const token = await executeRecaptcha("login");
+            return token;
+        };
+        return {
+            recaptcha,
+        };
+    },
+    mounted() {
+        let orderId = localStorage.getItem("order_id")
+        if (orderId != "" && orderId != undefined && orderId != null) {
+            this.getData(orderId)
+        }
     },
     methods: {
         back() {
             this.$emit("changeStep", 2);
         },
-        async getDevice() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-                // Handle case where mediaDevices or enumerateDevices is not available
-                console.error('MediaDevices API not available');
-                return;
-            }
-
-            try {
-                this.devices = await navigator.mediaDevices.enumerateDevices();
-                this.devices = this.devices.filter(({ kind }) => kind === 'videoinput');
-
-                if (this.devices.length > 0) {
-                    this.selectedDevice = this.devices[0];
-                }
-            } catch (error) {
-                // Handle any errors that might occur during enumeration
-                console.error('Error enumerating devices:', error);
-            }
-        },
-        tambah() {
-            // Your code for handling the "Tambah" button click
-        },
-        onError(error) {
-            // Your error handling code
-            console.log(error)
-        },
-        onDetect(data) {
-            this.txt = JSON.stringify(data.map((code) => code.rawValue))
-
-            // Your code for handling detected QR codes
-        },
-        paintOutline(detectedCodes, ctx) {
-            for (const detectedCode of detectedCodes) {
-                const [firstPoint, ...otherPoints] = detectedCode.cornerPoints
-
-                ctx.strokeStyle = 'red'
-
-                ctx.beginPath()
-                ctx.moveTo(firstPoint.x, firstPoint.y)
-                for (const { x, y } of otherPoints) {
-                    ctx.lineTo(x, y)
-                }
-                ctx.lineTo(firstPoint.x, firstPoint.y)
-                ctx.closePath()
-                ctx.stroke()
-            }
-        },
-        paintBoundingBox(detectedCodes, ctx) {
-            for (const detectedCode of detectedCodes) {
-                const {
-                    boundingBox: { x, y, width, height }
-                } = detectedCode
-
-                ctx.lineWidth = 2
-                ctx.strokeStyle = '#007bff'
-                ctx.strokeRect(x, y, width, height)
-            }
-        },
-        paintCenterText(detectedCodes, ctx) {
-            for (const detectedCode of detectedCodes) {
-                const { boundingBox, rawValue } = detectedCode
-
-                const centerX = boundingBox.x + boundingBox.width / 2
-                const centerY = boundingBox.y + boundingBox.height / 2
-
-                const fontSize = Math.max(12, (50 * boundingBox.width) / ctx.canvas.width)
-
-                ctx.font = `bold ${fontSize}px sans-serif`
-                ctx.textAlign = 'center'
-
-                ctx.lineWidth = 3
-                ctx.strokeStyle = '#35495e'
-                ctx.strokeText(detectedCode.rawValue, centerX, centerY)
-
-                ctx.fillStyle = '#5cb984'
-                ctx.fillText(rawValue, centerX, centerY)
-            }
-        },
-        getConstraints() {
-            if (this.isMobileDevice()) {
-                return {
-                    facingMode: "environment" // Use the rear camera on mobile devices
+        pay() { },
+        getData(id) {
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
                 };
-            } else {
-                return {
-                    deviceId: this.selectedDevice.deviceId
-                };
-            }
+                customFetch(ORDER + "/" + id, requestOptions, this.$route.meta)
+                    .then((data) => {
+                        if (data == undefined) {
+                            throw new Error("No data");
+                        }
+                        if (data.data == null || data.data.length == 0) {
+                            localStorage.removeItem("order_id");
+                            this.back()
+                            return
+                        }
+                        this.order = data.data[0]
+                        this.order.cost_data.unshift({
+                            name: "Item",
+                            quantity: "Jumlah",
+                            price: "Harga",
+                            total: "Total",
+                            is_title: true
+                        });
+
+
+                        if (data.data[0].order_data.additional != null && data.data[0].order_data.additional.length > 0) {
+                            this.getAdds(id)
+                        } else {
+                            this.order.cost_data.push({
+                                name: "",
+                                quantity: "",
+                                price: "Total",
+                                total: this.order.total,
+                                is_last: true
+                            })
+                        }
+                    })
+                    .catch(() => {
+                    });
+            });
         },
-        isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
+        getAdds(id) {
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                }
+                customFetch(ADDITIONAL + "/" + id, requestOptions, this.$route.meta).then((data) => {
+                    if (data == undefined) {
+                        throw new Error("No data");
+                    }
+                    let total = 0
+                    this.adds = data.data
+                    if (this.adds != null && this.adds.length > 0) {
+                        for (let i in this.adds) {
+                            this.order.cost_data.push({
+                                name: this.adds[i].name,
+                                quantity: this.adds[i].quantity,
+                                price: this.adds[i].price,
+                                total: this.adds[i].price * this.adds[i].quantity,
+                            })
+                            total += this.adds[i].price * this.adds[i].quantity
+                        }
+
+                    }
+                    this.order.cost_data.push({
+                        name: "",
+                        quantity: "",
+                        price: "Total",
+                        total: this.order.total + total,
+                        is_last: true
+                    })
+                }).catch(() => {
+                })
+            })
+        },
     }
 }
 </script>

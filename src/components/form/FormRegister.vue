@@ -19,17 +19,23 @@
             <a-row type="flex" align="middle" class="qrow">
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
-                    <a-select :status="error.id.status ? 'error' : 'success'" v-model:value="id" mode="tags"
-                        style="width: 100%" placeholder="Nomor Permohonan" @change="handleChange"
-                        @keydown="preventNonNumericInput">
-                        <template #notFoundContent>
-                            <a-empty
-                                description="Anda diharuskan memasukkan nomor permohonan disini, anda dapat mengisi dengan beberapa nomor permohonan dalam 1 kanim" />
-                        </template>
-                        <a-select-option v-for="item, idx in id" :key="idx" :value="item">
-                            {{ item }}
-                        </a-select-option>
-                    </a-select>
+                    <a-input-group>
+                        <a-select :status="error.id.status ? 'error' : 'success'" v-model:value="id" mode="tags"
+                            style="width: calc(100% - 5px)" placeholder="Nomor Permohonan" @change="handleChange"
+                            @keydown="preventNonNumericInput">
+                            <template #notFoundContent>
+                                <a-empty
+                                    description="Anda diharuskan memasukkan nomor permohonan disini, anda dapat mengisi dengan beberapa nomor permohonan dalam 1 kanim" />
+                            </template>
+                            <a-select-option v-for="item, idx in id" :key="idx" :value="item">
+                                {{ item }}
+                            </a-select-option>
+                        </a-select>
+                        <a-button type="primary" style="margin-left: -45px;" @click="displayQR = true">
+                            <CameraOutlined />
+                        </a-button>
+                    </a-input-group>
+                    <QRCode @addData="addData" :display="displayQR"></QRCode>
                     <label v-if="error.id.status" style="color: red;font-weight: 700;">{{ error.id.message
                         }}</label>
                 </a-col>
@@ -202,7 +208,7 @@
                             </a-row>
                             <a-row>
                                 <a-col :span="10" class="qtitle">Harga:</a-col>
-                                <a-col>Rp. {{ send_cost[0].price }}</a-col>
+                                <a-col>{{ formatCurrency(send_cost[0].price) }}</a-col>
                             </a-row>
                         </a-col>
                     </a-row>
@@ -228,7 +234,7 @@
                 <a-col :span="1" class="required">*</a-col>
                 <a-col :span="23">
                     <a-row>
-                        <label class="qtitle">Biaya Layanan: Rp. 20.000</label>
+                        <label class="qtitle">Biaya Layanan: {{ formatCurrency(20000) }}</label>
                     </a-row>
                 </a-col>
             </a-row>
@@ -238,11 +244,13 @@
 <script>
 import { message } from "ant-design-vue";
 import { debounce } from 'lodash-es';
-import { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined } from '@ant-design/icons-vue';
+import { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined, CameraOutlined } from '@ant-design/icons-vue';
 import { GoogleMap, Marker, InfoWindow } from 'vue3-google-map'
 import { phoneCode } from '../../js/phone_code.js';
 import { customFetch, ADDRESS, ORDER, KANIM, SEND } from '../../js/url.js';
 import { useReCaptcha } from "vue-recaptcha-v3";
+import QRCode from '../QRCode.vue'
+import { formatCurrency } from '../../js/module.js'
 
 export default {
     setup() {
@@ -258,9 +266,11 @@ export default {
         };
     },
     name: 'FormRegister',
-    components: { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined, GoogleMap, Marker, InfoWindow },
+    components: { FileDoneOutlined, InfoCircleOutlined, MailOutlined, UserOutlined, CameraOutlined, GoogleMap, Marker, InfoWindow, QRCode },
     data() {
         return {
+            formatCurrency: formatCurrency,
+            displayQR: false,
             name: "",
             email: "",
             cost: 0,
@@ -325,6 +335,13 @@ export default {
         }
     },
     methods: {
+        addData(value) {
+            if (value != null) {
+                this.id.push(value)
+                this.handleChange()
+            }
+            this.displayQR = false
+        },
         markerDragend(event) {
             this.maps_data.markerPosition.lat = event.latLng.lat()
             this.maps_data.markerPosition.lng = event.latLng.lng()
@@ -390,8 +407,6 @@ export default {
             let lng1 = coord1.lng;
             let lat2 = coord2.lat;
             let lng2 = coord2.lng;
-
-            console.log(lat1, lng1, lat2, lng2)
 
             // Calculate the center coordinates
             let centerLat = (lat1 + lat2) / 2;
@@ -586,6 +601,7 @@ export default {
             }
             this.error.id.status = false
             this.cost = 10000 * this.id.length
+            this.id = [...new Set(this.id)];
             this.getPrice()
         },
         getKanim() {
