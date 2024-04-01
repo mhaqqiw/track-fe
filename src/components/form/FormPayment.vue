@@ -33,9 +33,10 @@
 </template>
 
 <script>
-import { customFetch, ORDER, ADDITIONAL } from '../../js/url.js';
+import { customFetch, ORDER, PAYMENT,ADDITIONAL } from '../../js/url.js';
 import { useReCaptcha } from "vue-recaptcha-v3";
 import { formatCurrency } from '../../js/module.js'
+import { message } from 'ant-design-vue';
 
 export default {
     name: 'FormPayment',
@@ -71,7 +72,29 @@ export default {
         back() {
             this.$emit("changeStep", 2);
         },
-        pay() { },
+        pay() {
+            this.recaptcha().then((token) => {
+                const requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "c-tok": token },
+                    body: JSON.stringify({ total: this.order.cost_data[this.order.cost_data.length - 1].total })
+                }
+                customFetch(PAYMENT + "/create/" + this.order.order_data.order_id, requestOptions, this.$route.meta).then((data) => {
+                    if (data == undefined) {
+                        throw new Error("No data");
+                    }
+                    if (data.data != null) {
+                        console.log(data.data.data.redirect_url)
+                        window.location.href = data.data.data.redirect_url;
+                        return
+                    }else{
+                        message.error(JSON.stringify(data.data));
+                    }
+                    
+                }).catch(() => {
+                });
+            })
+        },
         getData(id) {
             this.recaptcha().then((token) => {
                 const requestOptions = {

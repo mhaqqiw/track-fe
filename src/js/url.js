@@ -11,6 +11,7 @@ export const SEND = API_URL + '/send';
 export const ORDER = API_URL + '/order';
 export const PRODUCT = API_URL + '/product';
 export const ADDITIONAL = API_URL + '/additional';
+export const PAYMENT = API_URL + '/payment';
 
 export const customFetch = (url, options, meta) => {
     return fetch(url, options)
