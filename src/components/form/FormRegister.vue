@@ -471,7 +471,8 @@ export default {
                         address: this.address,
                         detail: this.detail_address,
                         place_id: this.place_id,
-                        use_materai: false
+                        use_materai: false,
+                        additional: this.initial_data.additional
                     }),
                 };
                 customFetch(url, requestOptions, this.$route.meta)
