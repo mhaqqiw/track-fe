@@ -591,7 +591,7 @@ export default {
                             this.kanim.code = this.id[i].substring(0, 3);
                             this.getKanim()
                         } else {
-                            if (this.kanim.code != this.id[i].substring(0, 3)) {
+                            if (this.kanim.code != parseInt(this.id[i].substring(0, 3))) {
                                 message.error("Nomor Permohonan yang anda masukkan berada di kanim yang berbeda")
                                 this.id.splice(i, 1);
                                 return
